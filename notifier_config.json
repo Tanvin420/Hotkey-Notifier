@@ -1,0 +1,11 @@
+{
+    "notif_position": {
+        "x": 1049,
+        "y": 148
+    },
+    "notif_colors": {
+        "bg": "black",
+        "fg": "white"
+    },
+    "opacity": 0.4
+}
