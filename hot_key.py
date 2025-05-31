@@ -11,6 +11,8 @@ import tempfile
 import os
 from tkinter import colorchooser
 import json
+import winreg
+import webbrowser
 
 CONFIG_FILE = "notifier_config.json"
 
@@ -37,9 +39,40 @@ def load_config():
     except FileNotFoundError:
         save_config()  # Create default if not exists
 
+
 def save_config():
     with open(CONFIG_FILE, "w") as f:
         json.dump(app_config, f, indent=4)
+
+
+
+APP_NAME = "Hotkey Notifier"
+STARTUP_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+
+def get_script_path():
+    # Return full path to the script or executable
+    return os.path.abspath(sys.argv[0])
+
+def is_startup_enabled():
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, STARTUP_KEY, 0, winreg.KEY_READ) as key:
+            value, _ = winreg.QueryValueEx(key, APP_NAME)
+            return value == get_script_path()
+    except FileNotFoundError:
+        return False
+
+def enable_startup():
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, STARTUP_KEY, 0, winreg.KEY_WRITE) as key:
+        winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, get_script_path())
+
+def disable_startup():
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, STARTUP_KEY, 0, winreg.KEY_WRITE) as key:
+            winreg.DeleteValue(key, APP_NAME)
+    except FileNotFoundError:
+        pass
+
+
 
 def show_custom_notification(title, message, duration=2):
     def popup():
@@ -210,6 +243,7 @@ def show_help_page():
         "  • Use 'Reset Notification Position' in the Home menu to restore default.\n"
         "  • Adjust popup transparency with the Opacity slider.\n"
         "  • Pick your favorite background and text colors.\n"
+        "  • Enable or disable it to start on Windows start up.\n"
         "  • All settings are saved automatically and persist across restarts.\n"
         "\n"
         "🧲  𝗦𝘆𝘀𝘁𝗲𝗺 𝗧𝗿𝗮𝘆 𝗙𝗲𝗮𝘁𝘂𝗿𝗲𝘀:\n"
@@ -225,7 +259,7 @@ def show_help_page():
 
 def show_about_info():
     about_text = (
-        "✨ Hotkey Notifier v1.0\n"
+        "✨ Hotkey Notifier v1.1\n"
         "─────────────────────────────\n"
         "👨‍💻 Developed by Jamal Uddin Tanvin\n"
         "📬 Email: jamaluddintanvin@hotmail.com\n"
@@ -240,7 +274,7 @@ def show_about_info():
 def show_home_menu():
     home = tk.Tk()
     home.title("Hotkey Notifier")
-    home.geometry("340x460")
+    home.geometry("340x500")
     home.attributes("-topmost", True)
     home.resizable(False, False)
 
@@ -363,6 +397,34 @@ def show_home_menu():
     )
     reset_colors_btn.grid(row=0, column=2, padx=6, pady=2)
 
+    # Startup toggle frame
+    startup_frame = tk.Frame(home, bg=main_bg)
+    startup_frame.pack(pady=(10, 0))
+
+    startup_var = tk.BooleanVar(value=is_startup_enabled())
+
+    def toggle_startup():
+        if startup_var.get():
+            enable_startup()
+        else:
+            disable_startup()
+
+    startup_checkbox = tk.Checkbutton(
+        startup_frame,
+        text="Start on Windows startup",
+        variable=startup_var,
+        onvalue=True,
+        offvalue=False,
+        command=toggle_startup,
+        bg=main_bg,
+        fg=label_fg,
+        activebackground=main_bg,
+        activeforeground=label_fg,
+        font=("Segoe UI", 10),
+        selectcolor=accent
+    )
+    startup_checkbox.pack()
+
     # Separator
     sep = tk.Frame(home, bg=accent, height=2)
     sep.pack(fill="x", pady=(18, 10), padx=18)
@@ -392,7 +454,35 @@ def show_home_menu():
     )
     quit_btn.grid(row=0, column=2, padx=4, pady=2)
 
+    # Add clickable link after Quit button
+    def open_github():
+        try:
+            webbrowser.open("https://github.com/tanvin420")
+        except Exception as e:
+            pass
+
+    # Add separator above the GitHub link
+    sep.pack(fill="x", pady=(18, 10), padx=18)
+
+    link = tk.Label(
+        home, text="GitHub: Tanvin420", fg=accent, bg=main_bg, cursor="hand2",
+        font=("Segoe UI", 9, "underline")
+    )
+    link.pack(pady=(12, 0))  # Increase vertical padding
+
+    def on_hover(event):
+        link.config(font=("Segoe UI", 9, "underline"), fg="#4f8cff")
+
+    def on_leave(event):
+        link.config(font=("Segoe UI", 9), fg=accent)
+
+    link.bind("<Button-1>", lambda e: open_github())
+    link.bind("<Enter>", on_hover)
+    link.bind("<Leave>", on_leave)
+  
+
     home.mainloop()
+
 
 def tray_icon():
     global icon_ref
