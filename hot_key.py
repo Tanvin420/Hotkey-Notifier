@@ -508,7 +508,9 @@ def main():
     load_config()
     register_hotkeys()
     threading.Thread(target=tray_icon).start()
-
+    if not is_startup_enabled():
+        show_home_menu()
+    
 hotkeys = {
     'ctrl+c': {'name': 'Copy', 'show_clipboard': True},
     'ctrl+v': {'name': 'Paste', 'show_clipboard': False},

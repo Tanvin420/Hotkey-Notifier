@@ -3,7 +3,7 @@ from cx_Freeze import setup, Executable
 # Dependencies
 build_exe_options = {
     "packages": ["tkinter", "pystray", "keyboard", "pyperclip", "os", "sys","time","threading","PIL","tempfile","json","winreg","webbrowser"],
-    "include_files": ["app_icon.ico","LICENSE"]
+    "include_files": ["notifier_config.json","app_icon.ico","LICENSE"]
 }
 
 setup(
