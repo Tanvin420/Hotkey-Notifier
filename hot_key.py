@@ -523,8 +523,9 @@ def main():
     load_config()
     register_hotkeys()
     threading.Thread(target=tray_icon).start()
-    if not is_startup_enabled():
+    if len(sys.argv) == 1:
         show_home_menu()
+
     
 hotkeys = {
     'ctrl+c': {'name': 'Copy', 'show_clipboard': True},

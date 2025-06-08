@@ -14,7 +14,7 @@ bdist_msi_options = {
 
 setup(
     name="Hotkey Notifier",
-    version="1.1",
+    version="1.2",
     description="Custom popup notifier for hotkeys",
     options={
         "build_exe": build_exe_options,
