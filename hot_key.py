@@ -13,6 +13,7 @@ from tkinter import colorchooser
 import json
 import winreg
 import webbrowser
+import shutil
 
 CONFIG_FILE = "notifier_config.json"
 
@@ -31,14 +32,28 @@ icon_ref = None
 
 notif_opacity = 0.40  # default opacity
 
+def get_config_path():
+    appdata = os.getenv("APPDATA")
+    config_dir = os.path.join(appdata, "HotkeyNotifier")
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    return os.path.join(config_dir, "notifier_config.json")
+
+CONFIG_FILE = get_config_path()
+
 def load_config():
     global app_config
     try:
         with open(CONFIG_FILE, "r") as f:
             app_config.update(json.load(f))
     except FileNotFoundError:
-        save_config()  # Create default if not exists
-
+        # Migrate old config if exists in current dir
+        if os.path.exists("notifier_config.json"):
+            shutil.move("notifier_config.json", CONFIG_FILE)
+            with open(CONFIG_FILE, "r") as f:
+                app_config.update(json.load(f))
+        else:
+            save_config()  # Create default if not exists
 
 def save_config():
     with open(CONFIG_FILE, "w") as f:
